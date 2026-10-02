@@ -5,6 +5,7 @@ mod cabin;
 mod decor;
 mod geometry;
 mod island;
+mod porch;
 
 use crate::block::Block;
 use crate::light::Light;
@@ -71,15 +72,23 @@ pub fn build_scene() -> Scene {
     island::add_terrain(&mut blocks, POND_X, POND_Z);
     island::add_floating_base(&mut blocks);
     island::add_waterfall(&mut blocks, POND_X, POND_Z);
+    island::add_shore_rocks(&mut blocks, POND_X, POND_Z);
 
     let cabin = cabin::add_cabin(&mut blocks);
-    decor::add_path(&mut blocks, cabin.fz);
+    decor::add_path(&mut blocks, cabin.deck_edge);
     decor::add_snowman(&mut blocks);
     decor::add_trees(&mut blocks);
+    decor::add_bushes(&mut blocks);
+    decor::add_doghouse(&mut blocks, Vec3::new(-1.5, 0.0, -2.1));
+    decor::add_woodpile(&mut blocks, Vec3::new(cabin.fx + 0.28, 0.0, 0.75));
+    let lamp_glow = decor::add_lamp_post(&mut blocks, Vec3::new(1.05, 0.0, -2.1));
+
+    let mut lights = build_lights(cabin.fx, cabin.fz);
+    lights.push(Light::point(lamp_glow, 1.3, Vec3::new(1.0, 0.78, 0.5)));
 
     Scene {
         blocks,
         materials: build_materials(),
-        lights: build_lights(cabin.fx, cabin.fz),
+        lights,
     }
 }

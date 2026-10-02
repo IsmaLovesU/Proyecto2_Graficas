@@ -16,8 +16,11 @@ const MIN_CONTRIBUTION: f32 = 0.02;
 // Nuestra iluminacion no es fisicamente exacta (no hay radiometria real
 // detras de las intensidades que elegimos a mano), asi que un empujon de
 // exposicion antes de recortar a 8 bits evita que la escena de noche
-// termine viendose casi negra.
-const EXPOSURE: f32 = 1.25;
+// termine viendose casi negra. De dia el sol ya aporta de sobra, asi que
+// ese mismo empujon se reduce (`day_exposure`) para que la nieve no termine
+// quemada a blanco puro.
+const NIGHT_EXPOSURE: f32 = 1.25;
+const DAY_EXPOSURE: f32 = 0.85;
 // Velocidad a la que se desplaza la textura de los bloques "flowing" (la
 // cascada), para que se lea como agua cayendo y no como hielo quieto.
 const FLOW_SPEED: f32 = 0.8;
@@ -26,8 +29,13 @@ pub fn fov_scale() -> f32 {
     (60.0_f32.to_radians() / 2.0).tan()
 }
 
-fn to_rgb(color: Vec3) -> u32 {
-    let channel = |value: f32| (value * EXPOSURE).clamp(0.0, 255.0) as u8;
+fn day_exposure(time_of_day: f32) -> f32 {
+    let day = day_amount(time_of_day);
+    NIGHT_EXPOSURE * (1.0 - day) + DAY_EXPOSURE * day
+}
+
+fn to_rgb(color: Vec3, exposure: f32) -> u32 {
+    let channel = |value: f32| (value * exposure).clamp(0.0, 255.0) as u8;
     rgb(channel(color.x), channel(color.y), channel(color.z))
 }
 
@@ -73,13 +81,16 @@ fn celestial_lights(time_of_day: f32) -> [Light; 2] {
     let night_key = Vec3::new(0.6, 0.65, 0.9);
     let day_key = Vec3::new(1.0, 0.95, 0.85);
     let key_color = night_key * (1.0 - day) + day_key * day;
-    let key_intensity = 0.85 + day * 0.65;
+    // El tope de dia se quedo corto a proposito (antes llegaba a 1.5): junto
+    // con `DAY_EXPOSURE` mas bajo, evita que la nieve se queme a blanco puro
+    // al mediodia.
+    let key_intensity = 0.85 + day * 0.25;
 
     let fill_direction = Vec3::new(-0.4, 0.3, 0.5);
     let night_fill = Vec3::new(0.5, 0.55, 0.75);
     let day_fill = Vec3::new(0.75, 0.8, 0.9);
     let fill_color = night_fill * (1.0 - day) + day_fill * day;
-    let fill_intensity = 0.3 + day * 0.25;
+    let fill_intensity = 0.3 + day * 0.1;
 
     [
         Light::directional(direction, key_intensity, key_color),
@@ -286,6 +297,7 @@ fn render_rows(
     pixel_size: usize,
 ) {
     let fov_scale = fov_scale();
+    let exposure = day_exposure(ctx.time_of_day);
     let chunk_rows = chunk.len() / width;
 
     let mut local_y = 0;
@@ -302,7 +314,7 @@ fn render_rows(
                 (2.0 * (sample_col as f32 + 0.5) / width as f32 - 1.0) * ASPECT_RATIO * fov_scale;
             let screen_y = (1.0 - 2.0 * (sample_row as f32 + 0.5) / height as f32) * fov_scale;
             let direction = (right * screen_x + up * screen_y + forward).normalized();
-            let color = to_rgb(cast_ray(eye, direction, ctx, 0));
+            let color = to_rgb(cast_ray(eye, direction, ctx, 0), exposure);
 
             for by in 0..block_height {
                 let row_offset = (local_y + by) * width;

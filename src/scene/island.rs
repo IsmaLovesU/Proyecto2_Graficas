@@ -24,6 +24,41 @@ pub(super) fn add_terrain(blocks: &mut Vec<Block>, pond_x: (f32, f32), pond_z: (
     ));
 }
 
+/// Rocas bordeando la laguna, como las de un rio de piedras: solo en los
+/// tres lados que no desembocan en la cascada (`add_waterfall` ya se encarga
+/// del lado +X, que tiene que quedar libre para el canal de salida).
+pub(super) fn add_shore_rocks(blocks: &mut Vec<Block>, pond_x: (f32, f32), pond_z: (f32, f32)) {
+    const STEP: f32 = 0.4;
+    const MARGIN: f32 = 0.22;
+    let mut seed = 0.0f32;
+
+    let mut place = |blocks: &mut Vec<Block>, x: f32, z: f32| {
+        let jitter_x = (hash2(seed, 11.0) - 0.5) * 0.2;
+        let jitter_z = (hash2(seed, 23.0) - 0.5) * 0.2;
+        let size = 0.12 + hash2(seed, 37.0) * 0.14;
+        blocks.push(Block::cube(
+            Vec3::new(x + jitter_x, size * 0.4, z + jitter_z),
+            size,
+            STONE,
+        ));
+        seed += 1.0;
+    };
+
+    // Orillas cercana y lejana (no cruzan hacia el canal de salida en +X).
+    let mut x = pond_x.0 - MARGIN;
+    while x <= pond_x.1 {
+        place(blocks, x, pond_z.0 - MARGIN);
+        place(blocks, x, pond_z.1 + MARGIN);
+        x += STEP;
+    }
+    // Orilla del lado -X, de punta a punta.
+    let mut z = pond_z.0 - MARGIN;
+    while z <= pond_z.1 + MARGIN {
+        place(blocks, pond_x.0 - MARGIN, z);
+        z += STEP;
+    }
+}
+
 /// Base rocosa que cuelga del bloque de tierra/nieve, angostandose capa por
 /// capa hasta una punta: lo que hace que el terreno se lea como una isla
 /// flotante y no como una caja. Cada capa se encoge un poco mas que la

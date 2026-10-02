@@ -34,7 +34,7 @@ impl Skybox {
 
         let night_horizon = Vec3::new(45.0, 40.0, 70.0);
         let night_zenith = Vec3::new(8.0, 10.0, 28.0);
-        let day_horizon = Vec3::new(215.0, 228.0, 245.0);
+        let day_horizon = Vec3::new(196.0, 210.0, 230.0);
         let day_zenith = Vec3::new(70.0, 130.0, 225.0);
         let horizon = night_horizon * (1.0 - day) + day_horizon * day;
         let zenith = night_zenith * (1.0 - day) + day_zenith * day;
