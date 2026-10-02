@@ -8,6 +8,9 @@ pub struct Intersect {
     pub material_id: usize,
     pub u: f32,
     pub v: f32,
+    /// Si la superficie debe animarse desplazando su textura con el tiempo
+    /// (la cascada de agua). El resto de los bloques la dejan en `false`.
+    pub flowing: bool,
 }
 
 pub trait RayIntersect {

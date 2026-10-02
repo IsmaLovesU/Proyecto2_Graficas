@@ -3,6 +3,7 @@ use crate::vec3::Vec3;
 /// Una luz direccional (como la luna: no tiene posicion, solo una direccion
 /// de incidencia) o puntual (como una ventana iluminada o un farol, con
 /// posicion propia y atenuacion por distancia).
+#[derive(Clone, Copy)]
 pub enum Light {
     Directional {
         direction: Vec3,

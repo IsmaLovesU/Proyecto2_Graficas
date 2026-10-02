@@ -8,6 +8,7 @@ pub struct Block {
     pub min: Vec3,
     pub max: Vec3,
     pub material_id: usize,
+    pub flowing: bool,
 }
 
 impl Block {
@@ -16,6 +17,7 @@ impl Block {
             min,
             max,
             material_id,
+            flowing: false,
         }
     }
 
@@ -25,6 +27,13 @@ impl Block {
 
     pub fn centered(center: Vec3, half_extents: Vec3, material_id: usize) -> Self {
         Self::new(center - half_extents, center + half_extents, material_id)
+    }
+
+    /// Marca el bloque como parte de la cascada: su textura se desplaza con
+    /// el tiempo en `shade_hit` para simular agua cayendo.
+    pub fn flowing(mut self, flowing: bool) -> Self {
+        self.flowing = flowing;
+        self
     }
 
     /// Coordenadas de textura dentro de la cara golpeada: las dos
@@ -129,6 +138,7 @@ impl RayIntersect for Block {
             material_id: self.material_id,
             u,
             v,
+            flowing: self.flowing,
         })
     }
 }
