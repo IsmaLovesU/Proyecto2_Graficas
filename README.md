@@ -9,7 +9,8 @@ sin dependencias externas más allá de una librería mínima de ventaneo (`mini
 
 ## Demo
 
-<video src="PON_AQUI_EL_LINK_DEL_VIDEO" autoplay loop muted playsinline></video>
+[Video demostrativo](https://youtu.be/ckVhHafKre0)
+
 
 ## Características
 
